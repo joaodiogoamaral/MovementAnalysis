@@ -42,8 +42,12 @@ fi
 
 
 #RUN OPEN POSE
-
-
+#KEYPOINT SCALE:
+# 0 to scale it to the original source resolution; 
+# 1 to scale it to the net output size (set with net_resolution); 
+# 2 to scale it to the final output size (set with resolution);
+# 3 to scale it in the range [0,1], where (0,0) would be the top-left corner of the image, and (1,1) the bottom-right one; 
+# 4 for range [-1,1], where (-1,-1) would be the top-left corner of the image, and (1,1) the bottom-right one. 
 
 cd ../openpose/
 
