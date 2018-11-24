@@ -4,40 +4,10 @@
 
 SCRIPT_DIR=$(pwd)
 
-VIDEO_RELATIVE_PATH=$1
-
-if [ -z "$VIDEO_RELATIVE_PATH" ]
-then
-	printf "USAGE: ./CrossMotionOP.sh <PathToVideo> \n"
-	exit
-fi
-
-
-
 OUTPUT_DIR="$(pwd)/output/"
 
-#check if output directory is empty and clean outputs
 
-
-
-if [ ! -z "$(ls -a $OUTPUT_DIR)" ]
-then
-	printf "\nCleaning previous output data...\n"
-	rm -rf output/*
-fi
-
-
-
-VIDEO_ABS_PATH="$(pwd)/$VIDEO_RELATIVE_PATH"
-
-
-
-
-if [ ! -f $VIDEO_ABS_PATH ]
-then
-	printf "Could not find video!!! \n"
-	exit 1
-fi 
+FLAG=$1 	#flag can be --compare(compare 2 vids), --store (store a model) , or --check(to check a certain video among the models)
 
 
 
@@ -49,16 +19,162 @@ fi
 # 3 to scale it in the range [0,1], where (0,0) would be the top-left corner of the image, and (1,1) the bottom-right one; 
 # 4 for range [-1,1], where (-1,-1) would be the top-left corner of the image, and (1,1) the bottom-right one. 
 
-cd ../openpose/
 
-./build/examples/openpose/openpose.bin --video $VIDEO_ABS_PATH --write_json $OUTPUT_DIR
+runOpenPose()
+{
+	cd ../openpose/
+
+	./build/examples/openpose/openpose.bin --video $1 --write_json $2 --keypoint_scale 4
 
 
-cd $SCRIPT_DIR
+	cd $SCRIPT_DIR
+}
+
 
 #execute python program to process outputs
 
-python ReadOutput.py $OUTPUT_DIR
+
+
+
+
+
+
+
+
+
+clearOutput() 
+	{
+		if [ ! -z "$(ls -a $OUTPUT_DIR)" ]
+		then
+			printf "\nCleaning previous output data...\n"
+			rm -rf output/*
+		fi
+	}
+
+checkVideoExists ()
+	{
+		if [ ! -f $1 ]
+		then
+			printf "Could not find video!!! \n"
+			exit 1
+		fi 
+	}
+
+
+
+
+#test input arguments
+
+case "$1" in
+
+	--compare)
+		
+		if [ "$#" -ne 3 ]; then
+    		echo "USAGE: ./CrossMotionOP.sh --compare <PathToVideo1> <PathToVideo1>\n"
+    		exit 1
+		fi
+
+		mkdir temp #temporary directory to store json files with 
+		mkdir temp/vid1 
+		mkdir temp/vid2
+
+		VIDEO_RELATIVE_PATH=$2
+		VIDEO_ABS_PATH="$(pwd)/$VIDEO_RELATIVE_PATH"
+		checkVideoExists $VIDEO_ABS_PATH
+		OUTPUT_DIR1="$(pwd)/temp/vid1"
+		runOpenPose $VIDEO_ABS_PATH $OUTPUT_DIR1 
+		
+
+
+		#extract keypoints for second video
+		VIDEO_RELATIVE_PATH=$3
+		VIDEO_ABS_PATH="$(pwd)/$VIDEO_RELATIVE_PATH"
+		checkVideoExists $VIDEO_ABS_PATH
+		OUTPUT_DIR2="$(pwd)/temp/vid2"
+		runOpenPose $VIDEO_ABS_PATH $OUTPUT_DIR2
+		
+
+
+
+		python compareVideos.py $OUTPUT_DIR1 $OUTPUT_DIR2
+
+		rm -rf temp  
+
+
+
+		exit 0
+		;;
+
+	--store)
+		
+		if [ "$#" -ne 3 ]; then
+    		echo "USAGE: ./CrossMotionOP.sh --store <PathToVideo> <exercise>\n"
+    		exit 1
+		fi
+
+		VIDEO_RELATIVE_PATH=$2
+		EXERCISE=$3
+
+		clearOutput
+		VIDEO_ABS_PATH="$(pwd)/$VIDEO_RELATIVE_PATH"
+		checkVideoExists $VIDEO_ABS_PATH
+
+		runOpenPose
+
+
+
+		python storeModel.py $OUTPUT_DIR $EXERCISE
+
+
+		;;
+
+
+
+
+
+
+
+
+
+
+	--check)
+		echo "to be implemented!!!\n"
+		exit 0  ;;
+
+	*) 
+	echo "Incorrect Flags!!!\n"
+	exit 1 ;;
+
+
+esac
+
+#if [ "$#" -ne 1 ]; then
+ #   echo "Illegal number of parameters"
+#fi
+
+
+#VIDEO_RELATIVE_PATH=$1
+
+#if [ -z "$VIDEO_RELATIVE_PATH" ]
+#then
+#	printf "USAGE: ./CrossMotionOP.sh <PathToVideo> \n"
+#	exit
+#fi
+
+
+
+#OUTPUT_DIR="$(pwd)/output/"
+
+#check if output directory is empty and clean outputs
+
+
+
+
+
+
+
+VIDEO_ABS_PATH="$(pwd)/$VIDEO_RELATIVE_PATH"
+
 
 
 
