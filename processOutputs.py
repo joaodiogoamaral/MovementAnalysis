@@ -7,9 +7,9 @@ import numpy as np
 import peakutils as pk 
 
 CONFIDENCE_THRESHOLD = 0.5
-INTERPOLATION_ORDER = 10
+INTERPOLATION_ORDER = 10#10
 SQUAT_THRESHOLD = 0.2
-
+N_PTS = 100 #Number of points for time vectors
 
 
 #input is a dictionary where each entry is a list of tupples with the size of nFrames
@@ -42,10 +42,11 @@ def processOutputs(keypointMatrix):
 
 	#analyze movement for the knees
 	if( plane=="right" or plane =="front" or "back"):
-		[kneeX,kneeY] = extractEquations(keypointMatrix['rKnee'])
+		#[kneeX,kneeY] = extractEquations(keypointMatrix['rKnee'])
+		[kneeX,kneeY,time] = extractEquationsNorm(keypointMatrix['rKnee'])
 	else:
-		[kneeX,kneeY] = extractEquations(keypointMatrix['lKnee'])
-
+		#[kneeX,kneeY] = extractEquations(keypointMatrix['lKnee'])
+		[kneeX,kneeY,time] = extractEquationsNorm(keypointMatrix['lKnee'])
 
 	squats=checkSquats(kneeY)
 
@@ -92,9 +93,18 @@ def autocorr(x):
 
 # this functions extracts items (tuples) from the dictionary entries when the respective confidence is below a treshold.
 # Besides, if a certain tupple contains an empty value, delete it too
-def checkFrameConfidenceOk(keypoinFrame):
+
+def getCoherentMatrix(keypointMatrix):
+		#this loop discards frames where the keypoint could not be identified with a certain confidence
+	for i in keypointMatrix.keys():
+		keypointMatrix[i] = [x for x in keypointMatrix[i] if checkFrameConfidenceOk(x)]
+
+
+	return keypointMatrix
+
+def checkFrameConfidenceOk(keypointFrame):
 	
-	if(keypoinFrame[2]<CONFIDENCE_THRESHOLD):
+	if(keypointFrame[2]<CONFIDENCE_THRESHOLD):
 		return False
 	return True
 
@@ -133,11 +143,16 @@ def extractEquations(keypointPositions):
 	y = []
 	x = []
 	for i in keypointPositions:
+		
 		y.append(i[1])
 		x.append(i[0])
 
 
-	
+
+
+
+
+	print('\n\n\n')	
 
 	yCoeffs = np.poly1d(np.polyfit(time,y,INTERPOLATION_ORDER))
 	xCoeffs = np.poly1d(np.polyfit(time,x,INTERPOLATION_ORDER))	
@@ -158,7 +173,29 @@ def extractEquations(keypointPositions):
 
 
 
+#input to this function is a list of tupples for a certain keypoint
+def extractEquationsNorm(keypointPositions):
+	
 
+	time = np.linspace(0,len(keypointPositions),N_PTS)
+	tInt = xrange(len(keypointPositions)) #time vector for interpolation
+
+	y = []
+	x = []
+	for i in keypointPositions:
+		
+		y.append(i[1])
+		x.append(i[0])
+
+	print('\n\n\n')	
+
+	yCoeffs = np.poly1d(np.polyfit(tInt,y,INTERPOLATION_ORDER))
+	xCoeffs = np.poly1d(np.polyfit(tInt,x,INTERPOLATION_ORDER))	
+	
+
+
+
+	return [xCoeffs(time),yCoeffs(time),time]
 
 # jointPositions is a list of tuples and the key name!
 

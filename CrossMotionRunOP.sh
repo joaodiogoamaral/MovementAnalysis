@@ -73,7 +73,7 @@ case "$1" in
     		echo "USAGE: ./CrossMotionOP.sh --compare <PathToVideo1> <PathToVideo1>\n"
     		exit 1
 		fi
-
+		rm -rf temp  
 		mkdir temp #temporary directory to store json files with 
 		mkdir temp/vid1 
 		mkdir temp/vid2
@@ -98,7 +98,7 @@ case "$1" in
 
 		python compareVideos.py $OUTPUT_DIR1 $OUTPUT_DIR2
 
-		rm -rf temp  
+		#
 
 
 

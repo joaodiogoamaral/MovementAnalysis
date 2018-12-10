@@ -19,12 +19,22 @@ CONFIDENCE_THRESHOLD = 0.3
 
 
 
-#pose keypoints2D are in format (x,y,c) with c being the confidence degree
+
+#xCords = []
+#yCords = []
+#conf = []
+#for loop to iterate through each json file in the directory
+#input is the name of the folder from which the results should be read from
+def readOutputs(outputDir):
 
 
 
-#initialize a matrix to contain all the frames
-#keypointMatrix = []
+	#pose keypoints2D are in format (x,y,c) with c being the confidence degree
+
+
+
+	#initialize a matrix to contain all the frames
+	#keypointMatrix = []
 
 		# Result for BODY_25 (25 body parts consisting of COCO + foot)
 		# const std::map<unsigned int, std::string> POSE_BODY_25_BODY_PARTS {
@@ -54,39 +64,36 @@ CONFIDENCE_THRESHOLD = 0.3
 		#     {23, "RSmallToe"},
 		#     {24, "RHeel"},
 		#     {25, "Background"}
-keypointMatrix = {
-'nose':[],
-'neck':[],
-'rShoulder' : [],
-'rElbow' : [],
-'rWrist' : [],
-'lShoulder' : [],
-'lElbow' : [],
-'lWrist' : [],
-'midHip' : [],
-'rHip' : [],
-'rKnee' : [],
-'rAnkle' : [],
-'lHip' : [],
-'lKnee' : [],
-'lAnkle' : [],
-'rEye' : [],
-'lEye' : [],
-'rEar' : [],
-'lEar' : [],
-'lBigToe': [],
-'lSmallToe' : [],
-'lHeel' : [],
-'rBigToe' : [],
-'rRSmallToe': [],
-'RHeel' : []}
+
 		#     {25, "Background"}
-#xCords = []
-#yCords = []
-#conf = []
-#for loop to iterate through each json file in the directory
-#input is the name of the folder from which the results should be read from
-def readOutputs(outputDir):
+
+	keypointMatrix = {
+	'nose':[],
+	'neck':[],
+	'rShoulder' : [],
+	'rElbow' : [],
+	'rWrist' : [],
+	'lShoulder' : [],
+	'lElbow' : [],
+	'lWrist' : [],
+	'midHip' : [],
+	'rHip' : [],
+	'rKnee' : [],
+	'rAnkle' : [],
+	'lHip' : [],
+	'lKnee' : [],
+	'lAnkle' : [],
+	'rEye' : [],
+	'lEye' : [],
+	'rEar' : [],
+	'lEar' : [],
+	'lBigToe': [],
+	'lSmallToe' : [],
+	'lHeel' : [],
+	'rBigToe' : [],
+	'rRSmallToe': [],
+	'RHeel' : []}
+
 
 	print(outputDir)
 	jsonFiles = [posJson for posJson in os.listdir(outputDir) if posJson.endswith('.json')]
@@ -141,7 +148,9 @@ def readOutputs(outputDir):
 			keypointMatrix['RHeel'].append((xCords[24]-xCords[8],yCords[24]-yCords[8],conf[24]))
 
 
-	return keypointMatrix
+
+
+	return processOutputs.getCoherentMatrix(keypointMatrix)
 	#processOutputs.processOutputs(keypointMatrix)
 
 
