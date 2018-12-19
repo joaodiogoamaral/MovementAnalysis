@@ -11,51 +11,73 @@ import matplotlib.pyplot as plt
 from numpy import dot
 from numpy.linalg import norm
 
+#array of directories
+def compareVideos(args):
 
-def compareVideos(vid1,vid2):
+	planes = []
+	vidMatrix = []
+	for i in args:
+		print i
+		output=ReadOutput.readOutputs(i)
+		vidMatrix.append(output)
+		plane=processOutputs.getPlane(output)
+		planes.append(plane)
 
+
+	if(len(set(planes))>1):
+		print("Videos not in the same plane, makes no sense to compare them!!!\n")
+		sys.exit(1)	
+	print(set(planes))
+	eqMatrix=[]
+
+	for j in vidMatrix:
 	
 
-	vid1Matrix = ReadOutput.readOutputs(vid1)
-	vid2Matrix = ReadOutput.readOutputs(vid2)
+		if(set(plane)=="right" or set(plane) =="front" or set(plane)=="back"):
+			title='rKnee Y position'
+			#output of extractEquations is [xCoeffs(time),yCoeffs(time),time]
+			[x,y,t]=processOutputs.extractEquationsNorm(j['rKnee'])
+			#title='rWrist Y position'
+			#[x,y,t]=processOutputs.extractEquationsNorm(j['rWrist'])
+		else:
+			title='lKnee Y position'
+			#output of extractEquations is [xCoeffs(time),yCoeffs(time),time]
+			[x,y,t]=processOutputs.extractEquationsNorm(j['lKnee'])
+			#title='lWrist Y position'
+			#[x,y,t]=processOutputs.extractEquationsNorm(j['lWrist'])
 
-	plane1 = processOutputs.getPlane(vid1Matrix)
-	plane2 = processOutputs.getPlane(vid2Matrix)
+		eqMatrix.append([x,y,t])
+	
 
-	if( plane1 != plane2 ):
-		print("Videos not in the same plane, makes no sense to compare them!!!\n")
-		sys.exit(1)
+	print(len(eqMatrix))
 
-	else:
-		print(plane1)
-
-
-
-
-	if( plane1=="right" or plane1 =="front" or "back"):
-		
-		[kneeX1,kneeY1,t1] = processOutputs.extractEquationsNorm(vid1Matrix['rKnee'])
-		
-		[kneeX2,kneeY2,t2] = processOutputs.extractEquationsNorm(vid2Matrix['rKnee'])
-		
-		plotMovementsNorm(kneeY1,kneeY2,t1,t2)
+	plotEqMatrix(eqMatrix,title)
+	getSimilarityMatrix(eqMatrix)
 
 
+def plotEqMatrix(eqMatrix,title):
+	
 
+	plt.figure(1)
+	plt.title(title)
 
-	else:
-
-		[kneeX1,kneeY1,t1] = processOutputs.extractEquationsNorm(vid1Matrix['lKnee'])
-
-		[kneeX2,kneeY2,t2] = processOutputs.extractEquationsNorm(vid2Matrix['lKnee'])
-
-		plotMovementsNorm(kneeY1,kneeY2,t1,t2)
+	#output of extractEquations is [xCoeffs(time),yCoeffs(time),time]
+	for num,eq in enumerate(eqMatrix):
+		plt.plot(eq[2],eq[1],label=str(num+1))
 
 
 
-	sim = getSimilarity(kneeY1,kneeY2)
 
-	print(sim)
+	plt.legend()
+	plt.show()
+	
+
+def getSimilarityMatrix(eqMatrix):
+
+	for i in xrange(len(eqMatrix)):
+		if(i<len(eqMatrix)):
+			for x in xrange(i+1,len(eqMatrix)):
+				print('similarity between videos '+str(i+1)+' and '+str(x+1)+':'+str(getSimilarity(eqMatrix[i][1],eqMatrix[x][1])))
 
 
 
@@ -110,4 +132,5 @@ def plotMovementsNorm(x1,x2,t1,t2):
 
 if __name__ == "__main__":
 	
-	compareVideos(sys.argv[1],sys.argv[2]);
+	print(sys.argv)
+	compareVideos([sys.argv[x] for x,value in enumerate(sys.argv) if x > 0 ])

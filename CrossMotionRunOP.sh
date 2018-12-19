@@ -68,35 +68,36 @@ checkVideoExists ()
 case "$1" in
 
 	--compare)
-		
-		if [ "$#" -ne 3 ]; then
-    		echo "USAGE: ./CrossMotionOP.sh --compare <PathToVideo1> <PathToVideo1>\n"
+		ARG=""
+		if [ "$#" -lt 2 ]; then
+    		echo "USAGE: ./CrossMotionOP.sh --compare <PathToVideo1> <PathToVideo1> ... (as many as you want to compare)\n"
     		exit 1
 		fi
 		rm -rf temp  
 		mkdir temp #temporary directory to store json files with 
-		mkdir temp/vid1 
-		mkdir temp/vid2
 
-		VIDEO_RELATIVE_PATH=$2
-		VIDEO_ABS_PATH="$(pwd)/$VIDEO_RELATIVE_PATH"
-		checkVideoExists $VIDEO_ABS_PATH
-		OUTPUT_DIR1="$(pwd)/temp/vid1"
-		runOpenPose $VIDEO_ABS_PATH $OUTPUT_DIR1 
+		for ((i=2;i<=$#;i++)); 
+		do
+			mkdir temp/vid$((i-1))
+			VIDEO_RELATIVE_PATH=${!i}
+			echo $VIDEO_RELATIVE_PATH
+
+			VIDEO_ABS_PATH="$(pwd)/$VIDEO_RELATIVE_PATH"
+			checkVideoExists $VIDEO_ABS_PATH
+			OUTPUT_DIR="$(pwd)/temp/vid$((i-1))"
+			runOpenPose $VIDEO_ABS_PATH $OUTPUT_DIR
+			ARG="$ARG $OUTPUT_DIR"
+		done
+
+		
 		
 
-
-		#extract keypoints for second video
-		VIDEO_RELATIVE_PATH=$3
-		VIDEO_ABS_PATH="$(pwd)/$VIDEO_RELATIVE_PATH"
-		checkVideoExists $VIDEO_ABS_PATH
-		OUTPUT_DIR2="$(pwd)/temp/vid2"
-		runOpenPose $VIDEO_ABS_PATH $OUTPUT_DIR2
+		
 		
 
+		echo $ARG
 
-
-		python compareVideos.py $OUTPUT_DIR1 $OUTPUT_DIR2
+		python compareVideos.py $ARG 
 
 		#
 
